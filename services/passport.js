@@ -10,6 +10,8 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
+console.log(keys);
+
 // Take incoming request, decrypt cookie, find user in database,
 // Add user to 'req' object as req.user for every single request
 passport.deserializeUser((id, done) => {
