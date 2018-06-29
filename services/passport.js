@@ -10,8 +10,6 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-console.log(keys);
-
 // Take incoming request, decrypt cookie, find user in database,
 // Add user to 'req' object as req.user for every single request
 passport.deserializeUser((id, done) => {
@@ -28,16 +26,14 @@ passport.use(
       callbackURL: '/auth/google/callback',
       proxy: true
     },
-    (accessToken, refreshToken, profile, done) => {
-      User.findOne({ googleId: profile.id }).then(existingUser => {
-        if (existingUser) {
-          done(null, existingUser);
-        } else {
-          new User({ googleId: profile.id })
-            .save()
-            .then(user => done(null, user));
-        }
-      });
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ googleId: profile.id });
+
+      if (existingUser) {
+        return done(null, existingUser);
+      }
+      const newUser = await new User({ googleId: profile.id }).save();
+      done(null, newUser);
     }
   )
 );
@@ -50,18 +46,15 @@ passport.use(
       callbackURL: '/auth/facebook/callback',
       proxy: true
     },
-    (accessToken, refreshToken, profile, done) => {
-      console.log(profile);
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ facebookId: profile.id });
 
-      User.findOne({ facebookId: profile.id }).then(existingUser => {
-        if (existingUser) {
-          done(null, existingUser);
-        } else {
-          new User({ facebookId: profile.id })
-            .save()
-            .then(user => done(null, user));
-        }
-      });
+      if (existingUser) {
+        return done(null, existingUser);
+      }
+
+      const newUser = await new User({ facebookId: profile.id }).save();
+      done(null, newUser);
     }
   )
 );
